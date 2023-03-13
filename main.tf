@@ -1,3 +1,14 @@
+locals {
+  tags = {
+    owner           = var.owner
+    purpose         = "testing"
+    env             = "dev"
+    billing         = "dev"
+    sendbird_region = "dev"
+    sbregion        = "dev"
+  }
+}
+
 terraform {
   required_providers {
     aws = {
@@ -8,26 +19,25 @@ terraform {
 }
 
 provider "aws" {
-  region  = var.region
+  region = var.region
 }
 
 resource "aws_vpc" "hashicat" {
   cidr_block           = var.address_space
   enable_dns_hostnames = true
 
-  tags = {
+  tags = merge(local.tags, {
     name = "${var.prefix}-vpc-${var.region}"
-    environment = "Production"
-  }
+  })
 }
 
 resource "aws_subnet" "hashicat" {
   vpc_id     = aws_vpc.hashicat.id
   cidr_block = var.subnet_prefix
 
-  tags = {
+  tags = merge(local.tags, {
     name = "${var.prefix}-subnet"
-  }
+  })
 }
 
 resource "aws_security_group" "hashicat" {
@@ -64,17 +74,17 @@ resource "aws_security_group" "hashicat" {
     prefix_list_ids = []
   }
 
-  tags = {
+  tags = merge(local.tags, {
     Name = "${var.prefix}-security-group"
-  }
+  })
 }
 
 resource "aws_internet_gateway" "hashicat" {
   vpc_id = aws_vpc.hashicat.id
 
-  tags = {
+  tags = merge(local.tags, {
     Name = "${var.prefix}-internet-gateway"
-  }
+  })
 }
 
 resource "aws_route_table" "hashicat" {
@@ -126,9 +136,9 @@ resource "aws_instance" "hashicat" {
   subnet_id                   = aws_subnet.hashicat.id
   vpc_security_group_ids      = [aws_security_group.hashicat.id]
 
-  tags = {
+  tags = merge(local.tags, {
     Name = "${var.prefix}-hashicat-instance"
-  }
+  })
 }
 
 # We're using a little trick here so we can run the provisioner without
