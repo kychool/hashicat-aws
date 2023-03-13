@@ -94,6 +94,9 @@ resource "aws_route_table" "hashicat" {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.hashicat.id
   }
+  tags = merge(local.tags, {
+    name = "${var.prefix}-rt-${var.region}"
+  })
 }
 
 resource "aws_route_table_association" "hashicat" {
@@ -121,6 +124,10 @@ data "aws_ami" "ubuntu" {
 resource "aws_eip" "hashicat" {
   instance = aws_instance.hashicat.id
   vpc      = true
+
+  tags = merge(local.tags, {
+    name = "${var.prefix}-eip-${var.region}"
+  })
 }
 
 resource "aws_eip_association" "hashicat" {
@@ -138,6 +145,9 @@ resource "aws_instance" "hashicat" {
 
   tags = merge(local.tags, {
     Name = "${var.prefix}-hashicat-instance"
+  })
+  volume_tags = merge(local.tags, {
+    Name = "${var.prefix}-hashicat-volume"
   })
 }
 
